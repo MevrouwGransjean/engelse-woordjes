@@ -1,629 +1,983 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Woordjes leren</title>
   <style>
-    body { font-family: 'Segoe UI', sans-serif; text-align: center; padding-top: 40px; }
-    .grid { display: grid; gap: 10px; justify-content: center; margin-bottom: 20px; }
-    .tile {
-      width: 50px; height: 50px; border: 2px solid #ccc;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 24px; font-weight: bold;
-      background-color: white; text-transform: uppercase;
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --green: #86efac;
+      --orange: #fdba74;
+      --grey: #d1d5db;
+      --border: #e5e7eb;
+      --danger: #ef4444;
     }
-    .green { background-color: lightgreen; }
-    .orange { background-color: orange; }
-    .grey { background-color: lightgrey; }
-    input { padding: 10px; font-size: 18px; width: 150px; text-align: center; }
-    button { padding: 10px 15px; font-size: 16px; margin: 10px; }
-    #message { margin-top: 20px; font-size: 18px; }
-    #hint { font-weight: bold; font-size: 20px; margin-bottom: 10px; }
-    #score { margin-top: 10px; font-size: 16px; }
-    #remaining { font-size: 16px; margin-top: 5px; color: #333; }
-    .tile[style*="dashed"] { color: transparent; }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #eef2ff, #fdf2f8);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app {
+      width: min(900px, 100%);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 3rem);
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+    }
+
+    .menu {
+      display: grid;
+      gap: 18px;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    label {
+      font-weight: 700;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      font-size: 1rem;
+      background: white;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--primary);
+      color: white;
+      transition: 0.15s ease;
+    }
+
+    button:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    button.secondary { background: #111827; }
+    button.secondary:hover { background: #374151; }
+
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 18px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .topbar span {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 12px;
+    }
+
+    .hint {
+      font-size: clamp(1.2rem, 3vw, 1.7rem);
+      font-weight: 800;
+      text-align: center;
+      margin: 16px 0 8px;
+    }
+
+    .helper {
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .grid-wrap {
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 8px;
+    }
+
+    .tile {
+      width: 46px;
+      height: 46px;
+      border: 2px solid #cbd5e1;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      font-weight: 900;
+      background: white;
+      text-transform: uppercase;
+    }
+
+    .tile.green { background: var(--green); border-color: #22c55e; }
+    .tile.orange { background: var(--orange); border-color: #f97316; }
+    .tile.grey { background: var(--grey); border-color: #9ca3af; }
+    .tile.space { background: #f3f4f6; border-style: dashed; color: transparent; }
+
+    .answer-row {
+      max-width: 460px;
+      margin: 18px auto 0;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+    }
+
+    .message {
+      min-height: 28px;
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-top: 14px;
+    }
+
+    .danger { color: var(--danger); }
+    .success { color: #15803d; }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      margin-top: 24px;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 560px) {
+      body { padding: 12px; }
+      .card { padding: 18px; border-radius: 18px; }
+      .button-row, .answer-row { grid-template-columns: 1fr; }
+      .tile { width: 38px; height: 38px; font-size: 1rem; }
+    }
   </style>
 </head>
 <body>
+  <main class="app">
+    <header>
+      <h1>Woordjes leren</h1>
+      <p class="subtitle">Kies een Mixed Bag en oefen Engels ↔ Nederlands.</p>
+    </header>
 
-<h1>Woordjes leren</h1>
+    <section id="startscherm" class="card menu">
+      <div>
+        <label for="levelSelect">Mixed Bag</label>
+        <select id="levelSelect"></select>
+      </div>
 
-<div id="startscherm">
-  <p>Kies je oefenrichting:</p>
-  <button onclick="startWithMode('en-nl')">Engels → Nederlands</button>
-  <button onclick="startWithMode('nl-en')">Nederlands → Engels</button>
-</div>
+      <div>
+        <label>Spelmodus</label>
+        <select id="modeSelect">
+          <option value="normal">Rustig oefenen zonder timer</option>
+          <option value="speed">Speed Mode - 60 seconden</option>
+        </select>
+      </div>
 
-<div id="spel" style="display:none;">
-  <div id="hint"></div>
-  <div id="grid-container"></div>
-  <input type="text" id="guess" placeholder="Typ je antwoord">
-  <p id="remaining"></p>
-  <button onclick="submitGuess()">OK</button>
-  <p id="message"></p>
-  <p id="score">Score: 0</p>
-</div>
+      <div>
+        <label>Oefenrichting</label>
+        <div class="button-row">
+          <button onclick="startWithMode('en-nl')">Engels → Nederlands</button>
+          <button onclick="startWithMode('nl-en')">Nederlands → Engels</button>
+        </div>
+      </div>
+    </section>
 
-<script>
-  let score = 0;
-  let woorden = [
-{ engels: "odious", nederlands: "weerzinwekkend" },
-{ engels: "rejoiced", nederlands: "verheugde zich, was blij" },
-{ engels: "approach", nederlands: "te benaderen, af te gaan op" },
-{ engels: "ward", nederlands: "afdeling" },
-{ engels: "resolved", nederlands: "opgelost, afgehandeld" },
-{ engels: "persuade", nederlands: "overtuigen" },
-{ engels: "sacrifices", nederlands: "offers" },
-{ engels: "exempt", nederlands: "vrijgesteld" },
-{ engels: "yearning", nederlands: "sterk verlangen" },
-{ engels: "segregating", nederlands: "het van elkaar scheiden van" },
-{ engels: "disaster", nederlands: "ramp" },
-{ engels: "vast", nederlands: "overgrote" },
-{ engels: "siblings", nederlands: "broers en/of zussen" },
-{ engels: "paid homage", nederlands: "bracht een eerbetoon" },
-{ engels: "child prodigy", nederlands: "wonderkind" },
-{ engels: "major", nederlands: "bijzonder belangrijk" },
-{ engels: "sane", nederlands: "verstandig" },
-{ engels: "primary school", nederlands: "basisschool" },
-{ engels: "limped", nederlands: "hinkte" },
-{ engels: "preceding", nederlands: "voorafgaand" },
+    <section id="spel" class="card" style="display:none;">
+      <div class="topbar">
+        <span id="timer">⏱ 60s</span>
+        <span id="levelLabel">Mixed Bag</span>
+        <span id="score">Score: 0</span>
+        <span id="xp">XP: 0</span>
+        <span id="streak">🔥 Streak: 0</span>
+        <span id="highscore">🏆 Record: 0</span>
+        <button class="secondary" onclick="terugNaarMenu()">Terug naar menu</button>
+      </div>
 
-{ engels: "exclaimed", nederlands: "riep uit" },
-{ engels: "precautions", nederlands: "voorzorgsmaatregelen" },
-{ engels: "wardrobe", nederlands: "garderobe" },
-{ engels: "prior to", nederlands: "vóór" },
-{ engels: "approval", nederlands: "toestemming, goedkeuring" },
-{ engels: "safeguarded", nederlands: "gewaarborgd" },
-{ engels: "obtain", nederlands: "verkrijgen" },
-{ engels: "secrecy", nederlands: "geheimhouding" },
-{ engels: "shattered", nederlands: "de bodem ingeslagen" },
-{ engels: "mainland", nederlands: "het Europees continent" },
-{ engels: "relate to", nederlands: "op te schieten met" },
-{ engels: "failed to disclose", nederlands: "maakte niet openbaar" },
-{ engels: "resorted to", nederlands: "nam haar toevlucht tot" },
-{ engels: "veil", nederlands: "sluier" },
-{ engels: "honourable", nederlands: "eervol" },
-{ engels: "prodigal", nederlands: "verkwistend, spilziek" },
-{ engels: "pertinent", nederlands: "relevant" },
-{ engels: "yield", nederlands: "rendement, opbrengst" },
-{ engels: "siege", nederlands: "beleg, belegering" },
-{ engels: "lingered", nederlands: "bleven hangen" },
+      <div id="hint" class="hint"></div>
+      <div id="helper" class="helper"></div>
+      <div id="grid-container" class="grid-wrap"></div>
 
-{ engels: "comply with", nederlands: "naleven" },
-{ engels: "patronising", nederlands: "neerbuigende, betuttelende" },
-{ engels: "lack", nederlands: "gebrek" },
-{ engels: "acknowledged", nederlands: "erkend" },
-{ engels: "resolutions", nederlands: "voornemens" },
-{ engels: "elude", nederlands: "ontlopen" },
-{ engels: "in jest", nederlands: "voor de grap" },
-{ engels: "cave dwellers", nederlands: "holbewoners" },
-{ engels: "range", nederlands: "liggen tussen --- en ---" },
-{ engels: "features", nederlands: "gelaatstrekken" },
-{ engels: "remind", nederlands: "eraan herinneren" },
-{ engels: "conserve", nederlands: "behouden" },
-{ engels: "wildlife sanctuary", nederlands: "wildreservaat" },
-{ engels: "denounced", nederlands: "aan de kaak gesteld, veroordeeld" },
-{ engels: "refuge centres", nederlands: "blijf-van-mijn-lijf-huizen" },
-{ engels: "heightened", nederlands: "heeft verhoogd, doen toenemen" },
-{ engels: "bachelor", nederlands: "vrijgezel" },
-{ engels: "reverence", nederlands: "diepe eerbied" },
-{ engels: "ingenuous", nederlands: "naïef" },
-{ engels: "gender pay gap", nederlands: "salariskloof" },
+      <div class="answer-row">
+        <input type="text" id="guess" placeholder="Typ je antwoord" autocomplete="off" />
+        <button onclick="submitGuess()">OK</button>
+      </div>
 
-{ engels: "cautious", nederlands: "voorzichtig" },
-{ engels: "jammed", nederlands: "overvol" },
-{ engels: "reminiscences", nederlands: "herinneringen" },
-{ engels: "comprise", nederlands: "vormen" },
-{ engels: "restricted", nederlands: "beperkt" },
-{ engels: "herd", nederlands: "kudde" },
-{ engels: "considered", nederlands: "overwoog" },
-{ engels: "lavatories", nederlands: "toiletten" },
-{ engels: "schedule", nederlands: "programma, tijdschema" },
-{ engels: "acquaintances", nederlands: "kennissen" },
-{ engels: "ranks among", nederlands: "behoort tot" },
-{ engels: "demolish", nederlands: "slopen" },
-{ engels: "value", nederlands: "waarde" },
-{ engels: "patted", nederlands: "gaf een klopje, klopte" },
-{ engels: "innumerable", nederlands: "ontelbare" },
-{ engels: "lease", nederlands: "huurovereenkomst" },
-{ engels: "embracing", nederlands: "omarmen" },
-{ engels: "worn out", nederlands: "bekaf, doodmoe" },
-{ engels: "refund", nederlands: "terugbetaling, geld terug" },
-{ engels: "did not back", nederlands: "steunden niet" },
+      <p id="remaining" class="helper"></p>
+      <p id="message" class="message"></p>
+    </section>
 
-{ engels: "despised", nederlands: "minachtte, verachtte" },
-{ engels: "infidelity", nederlands: "ontrouw, overspel" },
-{ engels: "realm", nederlands: "rijk" },
-{ engels: "keynote speech", nederlands: "thematoespraak" },
-{ engels: "vanished", nederlands: "verdwenen" },
-{ engels: "loitering", nederlands: "treuzelen" },
-{ engels: "conform", nederlands: "aanpassen aan, voldoen aan" },
-{ engels: "reinforce", nederlands: "verstevigen" },
-{ engels: "imaginary", nederlands: "fantasie" },
-{ engels: "solution", nederlands: "oplossing" },
-{ engels: "alliances", nederlands: "samenwerkingsverbanden" },
-{ engels: "nickname", nederlands: "bijnaam" },
-{ engels: "lectures", nederlands: "colleges" },
-{ engels: "scrap", nederlands: "laten vervallen" },
-{ engels: "accessible", nederlands: "bereikbaar" },
-{ engels: "peasants", nederlands: "kleine, arme boeren" },
-{ engels: "the team lacked", nederlands: "het ontbrak het team aan" },
-{ engels: "emphasised", nederlands: "benadrukte" },
-{ engels: "marvellous", nederlands: "fantastisch" },
-{ engels: "cease", nederlands: "ophouden" },
+    <footer>
+      Spel ontwikkeld door Mevrouw Gransjean<br />© april 2026
+    </footer>
+  </main>
 
-{ engels: "challenged", nederlands: "daagden uit" },
-{ engels: "reliable", nederlands: "betrouwbare" },
-{ engels: "accidental", nederlands: "onbedoelde" },
-{ engels: "marvelled at", nederlands: "verwonderden ons over" },
-{ engels: "replete with", nederlands: "vol met" },
-{ engels: "entailed", nederlands: "met zich meebracht, betekende" },
-{ engels: "gene", nederlands: "gen" },
-{ engels: "reaped the reward", nederlands: "plukte de vruchten" },
-{ engels: "consent", nederlands: "toestemming geven" },
-{ engels: "scruples", nederlands: "scrupules, een geweten" },
-{ engels: "safety features", nederlands: "veiligheidsvoorzieningen" },
-{ engels: "infinite", nederlands: "oneindig" },
-{ engels: "patterns", nederlands: "patronen" },
-{ engels: "deserted him", nederlands: "lieten hem in de steek" },
-{ engels: "solitude", nederlands: "eenzaamheid" },
-{ engels: "kindergarten", nederlands: "de kleuterschool" },
-{ engels: "native species", nederlands: "inheems soort" },
-{ engels: "allowance", nederlands: "toelage" },
-{ engels: "loose", nederlands: "niet verpakt" },
-{ engels: "implications", nederlands: "gevolgen" },
+  <script>
+    const woordenPerLevel = {
+      77: [
+        { engels: "odious", nederlands: "weerzinwekkend" },
+        { engels: "rejoiced", nederlands: "verheugde zich, was blij" },
+        { engels: "approach", nederlands: "te benaderen, af te gaan op" },
+        { engels: "ward", nederlands: "afdeling" },
+        { engels: "resolved", nederlands: "opgelost, afgehandeld" },
+        { engels: "persuade", nederlands: "overtuigen" },
+        { engels: "sacrifices", nederlands: "offers" },
+        { engels: "exempt", nederlands: "vrijgesteld" },
+        { engels: "yearning", nederlands: "sterk verlangen" },
+        { engels: "segregating", nederlands: "het van elkaar scheiden van" },
+        { engels: "disaster", nederlands: "ramp" },
+        { engels: "vast", nederlands: "overgrote" },
+        { engels: "siblings", nederlands: "broers en/of zussen" },
+        { engels: "paid homage", nederlands: "bracht een eerbetoon" },
+        { engels: "child prodigy", nederlands: "wonderkind" },
+        { engels: "major", nederlands: "bijzonder belangrijk" },
+        { engels: "sane", nederlands: "verstandig" },
+        { engels: "primary school", nederlands: "basisschool" },
+        { engels: "limped", nederlands: "hinkte" },
+        { engels: "preceding", nederlands: "voorafgaand" }
+      ],
+      78: [
+        { engels: "exclaimed", nederlands: "riep uit" },
+        { engels: "precautions", nederlands: "voorzorgsmaatregelen" },
+        { engels: "wardrobe", nederlands: "garderobe" },
+        { engels: "prior to", nederlands: "vóór" },
+        { engels: "approval", nederlands: "toestemming, goedkeuring" },
+        { engels: "safeguarded", nederlands: "gewaarborgd" },
+        { engels: "obtain", nederlands: "verkrijgen" },
+        { engels: "secrecy", nederlands: "geheimhouding" },
+        { engels: "shattered", nederlands: "de bodem ingeslagen" },
+        { engels: "mainland", nederlands: "het Europees continent" },
+        { engels: "relate to", nederlands: "op te schieten met" },
+        { engels: "failed to disclose", nederlands: "maakte niet openbaar" },
+        { engels: "resorted to", nederlands: "nam haar toevlucht tot" },
+        { engels: "veil", nederlands: "sluier" },
+        { engels: "honourable", nederlands: "eervol" },
+        { engels: "prodigal", nederlands: "verkwistend, spilziek" },
+        { engels: "pertinent", nederlands: "relevant" },
+        { engels: "yield", nederlands: "rendement, opbrengst" },
+        { engels: "siege", nederlands: "beleg, belegering" },
+        { engels: "lingered", nederlands: "bleven hangen" }
+      ],
+      79: [
+        { engels: "comply with", nederlands: "naleven" },
+        { engels: "patronising", nederlands: "neerbuigende, betuttelende" },
+        { engels: "lack", nederlands: "gebrek" },
+        { engels: "acknowledged", nederlands: "erkend" },
+        { engels: "resolutions", nederlands: "voornemens" },
+        { engels: "elude", nederlands: "ontlopen" },
+        { engels: "in jest", nederlands: "voor de grap" },
+        { engels: "cave dwellers", nederlands: "holbewoners" },
+        { engels: "range", nederlands: "liggen tussen --- en ---" },
+        { engels: "features", nederlands: "gelaatstrekken" },
+        { engels: "remind", nederlands: "eraan herinneren" },
+        { engels: "conserve", nederlands: "behouden" },
+        { engels: "wildlife sanctuary", nederlands: "wildreservaat" },
+        { engels: "denounced", nederlands: "aan de kaak gesteld, veroordeeld" },
+        { engels: "refuge centres", nederlands: "blijf-van-mijn-lijf-huizen" },
+        { engels: "heightened", nederlands: "heeft verhoogd, doen toenemen" },
+        { engels: "bachelor", nederlands: "vrijgezel" },
+        { engels: "reverence", nederlands: "diepe eerbied" },
+        { engels: "ingenuous", nederlands: "naïef" },
+        { engels: "gender pay gap", nederlands: "salariskloof" }
+      ],
+      80: [
+        { engels: "cautious", nederlands: "voorzichtig" },
+        { engels: "jammed", nederlands: "overvol" },
+        { engels: "reminiscences", nederlands: "herinneringen" },
+        { engels: "comprise", nederlands: "vormen" },
+        { engels: "restricted", nederlands: "beperkt" },
+        { engels: "herd", nederlands: "kudde" },
+        { engels: "considered", nederlands: "overwoog" },
+        { engels: "lavatories", nederlands: "toiletten" },
+        { engels: "schedule", nederlands: "programma, tijdschema" },
+        { engels: "acquaintances", nederlands: "kennissen" },
+        { engels: "ranks among", nederlands: "behoort tot" },
+        { engels: "demolish", nederlands: "slopen" },
+        { engels: "value", nederlands: "waarde" },
+        { engels: "patted", nederlands: "gaf een klopje, klopte" },
+        { engels: "innumerable", nederlands: "ontelbare" },
+        { engels: "lease", nederlands: "huurovereenkomst" },
+        { engels: "embracing", nederlands: "omarmen" },
+        { engels: "worn out", nederlands: "bekaf, doodmoe" },
+        { engels: "refund", nederlands: "terugbetaling, geld terug" },
+        { engels: "did not back", nederlands: "steunden niet" }
+      ],
+      81: [
+        { engels: "despised", nederlands: "minachtte, verachtte" },
+        { engels: "infidelity", nederlands: "ontrouw, overspel" },
+        { engels: "realm", nederlands: "rijk" },
+        { engels: "keynote speech", nederlands: "thematoespraak" },
+        { engels: "vanished", nederlands: "verdwenen" },
+        { engels: "loitering", nederlands: "treuzelen" },
+        { engels: "conform", nederlands: "aanpassen aan, voldoen aan" },
+        { engels: "reinforce", nederlands: "verstevigen" },
+        { engels: "imaginary", nederlands: "fantasie" },
+        { engels: "solution", nederlands: "oplossing" },
+        { engels: "alliances", nederlands: "samenwerkingsverbanden" },
+        { engels: "nickname", nederlands: "bijnaam" },
+        { engels: "lectures", nederlands: "colleges" },
+        { engels: "scrap", nederlands: "laten vervallen" },
+        { engels: "accessible", nederlands: "bereikbaar" },
+        { engels: "peasants", nederlands: "kleine, arme boeren" },
+        { engels: "the team lacked", nederlands: "het ontbrak het team aan" },
+        { engels: "emphasised", nederlands: "benadrukte" },
+        { engels: "marvellous", nederlands: "fantastisch" },
+        { engels: "cease", nederlands: "ophouden" }
+      ],
+      82: [
+        { engels: "challenged", nederlands: "daagden uit" },
+        { engels: "reliable", nederlands: "betrouwbare" },
+        { engels: "accidental", nederlands: "onbedoelde" },
+        { engels: "marvelled at", nederlands: "verwonderden ons over" },
+        { engels: "replete with", nederlands: "vol met" },
+        { engels: "entailed", nederlands: "met zich meebracht, betekende" },
+        { engels: "gene", nederlands: "gen" },
+        { engels: "reaped the reward", nederlands: "plukte de vruchten" },
+        { engels: "consent", nederlands: "toestemming geven" },
+        { engels: "scruples", nederlands: "scrupules, een geweten" },
+        { engels: "safety features", nederlands: "veiligheidsvoorzieningen" },
+        { engels: "infinite", nederlands: "oneindig" },
+        { engels: "patterns", nederlands: "patronen" },
+        { engels: "deserted him", nederlands: "lieten hem in de steek" },
+        { engels: "solitude", nederlands: "eenzaamheid" },
+        { engels: "kindergarten", nederlands: "de kleuterschool" },
+        { engels: "native species", nederlands: "inheems soort" },
+        { engels: "allowance", nederlands: "toelage" },
+        { engels: "loose", nederlands: "niet verpakt" },
+        { engels: "implications", nederlands: "gevolgen" }
+      ],
+      83: [
+        { engels: "stake", nederlands: "aandeel" },
+        { engels: "comparison", nederlands: "vergelijking" },
+        { engels: "miscellaneous", nederlands: "diverse" },
+        { engels: "ancient Egypt", nederlands: "het oude Egypte" },
+        { engels: "utter", nederlands: "volslagen" },
+        { engels: "gadgets", nederlands: "apparaatjes, accessoires" },
+        { engels: "acres", nederlands: "400.000 vierkante meter" },
+        { engels: "quotes", nederlands: "citaten" },
+        { engels: "is alleged to", nederlands: "men beweert dat" },
+        { engels: "funeral", nederlands: "begrafenis" },
+        { engels: "treacherous", nederlands: "verraderlijk" },
+        { engels: "dispense with", nederlands: "het doen zonder" },
+        { engels: "overcome", nederlands: "overwinnen" },
+        { engels: "adopt", nederlands: "aannemen" },
+        { engels: "survived", nederlands: "overleefden" },
+        { engels: "additional", nederlands: "aanvullende, extra" },
+        { engels: "insisted", nederlands: "stond erop" },
+        { engels: "wrecked", nederlands: "vergaan" },
+        { engels: "nothing fancy", nederlands: "niet duur en overdreven" },
+        { engels: "prying eyes", nederlands: "nieuwsgierige blikken" }
+      ],
+      84: [
+        { engels: "suspected", nederlands: "verdacht" },
+        { engels: "garments", nederlands: "kleren, kledingstukken" },
+        { engels: "presumed", nederlands: "verondersteld" },
+        { engels: "grasped", nederlands: "begrepen" },
+        { engels: "alienated", nederlands: "vervreemd" },
+        { engels: "savaged", nederlands: "aangevallen en gebeten" },
+        { engels: "adjacent rooms", nederlands: "aangrenzende kamers" },
+        { engels: "mocking", nederlands: "bespotten" },
+        { engels: "worthwhile", nederlands: "de moeite waard" },
+        { engels: "on alternate days", nederlands: "om de andere dag" },
+        { engels: "outrage", nederlands: "grote woede en verontwaardiging" },
+        { engels: "prudent", nederlands: "voorzichtig, verstandig" },
+        { engels: "indigenous", nederlands: "inheems" },
+        { engels: "curse", nederlands: "vloek" },
+        { engels: "tribe", nederlands: "stam" },
+        { engels: "at his disposal", nederlands: "tot zijn beschikking" },
+        { engels: "rigid", nederlands: "starre" },
+        { engels: "historical", nederlands: "historische" },
+        { engels: "inscrutable", nederlands: "ondoorgrondelijk" },
+        { engels: "sensitive", nederlands: "gevoelige" }
+      ],
+      85: [
+        { engels: "lasting", nederlands: "blijvende, permanente" },
+        { engels: "compassionate", nederlands: "medelevend" },
+        { engels: "endeavouring", nederlands: "probeert" },
+        { engels: "fuss", nederlands: "gedoe, nodeloze drukte" },
+        { engels: "locating", nederlands: "vinden" },
+        { engels: "customs", nederlands: "de douane" },
+        { engels: "intercourse", nederlands: "geslachtsgemeenschap" },
+        { engels: "fluent", nederlands: "vloeiend" },
+        { engels: "groped", nederlands: "betastte" },
+        { engels: "transition", nederlands: "overgang, overgangsperiode" },
+        { engels: "devices", nederlands: "apparaten" },
+        { engels: "heritage", nederlands: "erfgoed" },
+        { engels: "comparable", nederlands: "vergelijkbare" },
+        { engels: "savage", nederlands: "felle, woeste" },
+        { engels: "dyeing", nederlands: "te verven" },
+        { engels: "invisible", nederlands: "onzichtbaar" },
+        { engels: "evolves", nederlands: "zich ontwikkelt" },
+        { engels: "at stake", nederlands: "op het spel" },
+        { engels: "facilitate", nederlands: "faciliteren, vergemakkelijken" },
+        { engels: "pretended", nederlands: "deed alsof" }
+      ],
+      86: [
+        { engels: "invoking", nederlands: "het oproepen van" },
+        { engels: "senseless", nederlands: "zinloze" },
+        { engels: "destiny", nederlands: "lot" },
+        { engels: "flourished", nederlands: "bloeide" },
+        { engels: "adolescence", nederlands: "adolescentie, tienerjaren" },
+        { engels: "logged into", nederlands: "inlogde op" },
+        { engels: "altered", nederlands: "veranderd" },
+        { engels: "indispensable", nederlands: "onontbeerlijke" },
+        { engels: "lax", nederlands: "slappe, niet strenge" },
+        { engels: "ancestors", nederlands: "voorouders" },
+        { engels: "trifle", nederlands: "beetje" },
+        { engels: "fancy", nederlands: "zin hebben om" },
+        { engels: "queer", nederlands: "eigenaardig" },
+        { engels: "exhausted", nederlands: "uitgeput" },
+        { engels: "rigorous", nederlands: "rigoureus, grondig" },
+        { engels: "acquisition", nederlands: "overname" },
+        { engels: "hesitation", nederlands: "aarzeling" },
+        { engels: "endurance", nederlands: "uithoudingsvermogen" },
+        { engels: "uttered", nederlands: "zei, uitte" },
+        { engels: "intelligible", nederlands: "begrijpelijk" }
+      ],
+      87: [
+        { engels: "lounge", nederlands: "lounge, lobby" },
+        { engels: "drag", nederlands: "slepen" },
+        { engels: "ordinary", nederlands: "gewone" },
+        { engels: "constitute", nederlands: "vormen, maken uit" },
+        { engels: "marital", nederlands: "huwelijks" },
+        { engels: "civilians", nederlands: "burgers" },
+        { engels: "grateful", nederlands: "dankbaar" },
+        { engels: "odd", nederlands: "vreemd" },
+        { engels: "convince", nederlands: "overtuigen" },
+        { engels: "joint", nederlands: "gezamenlijke" },
+        { engels: "cunning", nederlands: "sluw" },
+        { engels: "clumsy", nederlands: "onhandige" },
+        { engels: "muted", nederlands: "gedempte" },
+        { engels: "ensure", nederlands: "verzekeren" },
+        { engels: "dissuade", nederlands: "afraden" },
+        { engels: "disagree", nederlands: "ben het oneens" },
+        { engels: "indulgent", nederlands: "toegeeflijke" },
+        { engels: "faults", nederlands: "tekortkomingen" },
+        { engels: "blaze", nederlands: "vuurzee" },
+        { engels: "framework", nederlands: "kader" }
+      ],
+      88: [
+        { engels: "mutate", nederlands: "muteren, veranderen" },
+        { engels: "divided", nederlands: "verdeeld" },
+        { engels: "customs", nederlands: "gewoontes" },
+        { engels: "lunatic", nederlands: "gek" },
+        { engels: "consideration", nederlands: "overweging" },
+        { engels: "opted", nederlands: "koos ervoor" },
+        { engels: "clampdown", nederlands: "beperkende maatregel" },
+        { engels: "jeered", nederlands: "uitgejouwd" },
+        { engels: "drain", nederlands: "legen, laten leeglopen" },
+        { engels: "manufactured", nederlands: "gemaakt" },
+        { engels: "favour", nederlands: "gunst" },
+        { engels: "coarse", nederlands: "grof" },
+        { engels: "foundation", nederlands: "stichting" },
+        { engels: "enveloped", nederlands: "omhulden" },
+        { engels: "converted", nederlands: "verbouwd" },
+        { engels: "occur", nederlands: "vinden plaats, gebeuren" },
+        { engels: "granted", nederlands: "verleend" },
+        { engels: "inexplicable", nederlands: "onverklaarbare" },
+        { engels: "disappeared", nederlands: "verdween" },
+        { engels: "excuses", nederlands: "smoesjes" }
+      ],
+      89: [
+        { engels: "adults", nederlands: "volwassenen" },
+        { engels: "excuse", nederlands: "goedpraten, verontschuldigen" },
+        { engels: "calamity", nederlands: "ramp" },
+        { engels: "clashed", nederlands: "botsten" },
+        { engels: "make amends", nederlands: "het goedmaken" },
+        { engels: "gear", nederlands: "uitrusting" },
+        { engels: "barred", nederlands: "versperde" },
+        { engels: "development", nederlands: "ontwikkeling" },
+        { engels: "outline", nederlands: "overzicht" },
+        { engels: "inexhaustible", nederlands: "onuitputtelijke" },
+        { engels: "familiar", nederlands: "bekend" },
+        { engels: "derived", nederlands: "afgeleid" },
+        { engels: "dignified", nederlands: "plechtige, waardige" },
+        { engels: "charitable", nederlands: "liefdadige" },
+        { engels: "left me in the lurch", nederlands: "liet me in de steek" },
+        { engels: "are composed of", nederlands: "bestaan uit" },
+        { engels: "angle", nederlands: "invalshoek" },
+        { engels: "beyond", nederlands: "voorbij" },
+        { engels: "indulging in", nederlands: "zich te laten verwennen met" },
+        { engels: "affirmed", nederlands: "bevestigden" }
+      ],
+      90: [
+        { engels: "clarify", nederlands: "verduidelijken, verklaren" },
+        { engels: "delivery", nederlands: "bezorging" },
+        { engels: "ample opportunity", nederlands: "ruim de gelegenheid" },
+        { engels: "diary", nederlands: "agenda" },
+        { engels: "bars", nederlands: "tralies" },
+        { engels: "call off", nederlands: "afgelasten" },
+        { engels: "gathered", nederlands: "kwamen bijeen" },
+        { engels: "anguish", nederlands: "angst, zorgen en pijn" },
+        { engels: "inheritance", nederlands: "erfenis" },
+        { engels: "fate", nederlands: "het (nood)lot" },
+        { engels: "malls", nederlands: "winkelcentra" },
+        { engels: "outrageous", nederlands: "ongehoorde, schandelijke" },
+        { engels: "bewildered", nederlands: "verbijsterde" },
+        { engels: "chased", nederlands: "achternagezeten" },
+        { engels: "diminish", nederlands: "af te nemen, minder te worden" },
+        { engels: "conceals", nederlands: "verbergt" },
+        { engels: "adultery", nederlands: "overspel" },
+        { engels: "lure", nederlands: "lokken" },
+        { engels: "infants", nederlands: "baby’s en kleuters" },
+        { engels: "aid", nederlands: "hulp" }
+      ],
+      91: [
+        { engels: "durable", nederlands: "duurzame" },
+        { engels: "barbed wire", nederlands: "prikkeldraad" },
+        { engels: "ominous", nederlands: "dreigende" },
+        { engels: "intruder", nederlands: "indringer" },
+        { engels: "lap", nederlands: "schoot" },
+        { engels: "habit", nederlands: "gewoonte" },
+        { engels: "common sense", nederlands: "gezond verstand" },
+        { engels: "peninsula", nederlands: "schiereiland" },
+        { engels: "failure", nederlands: "mislukking" },
+        { engels: "intended", nederlands: "van plan was" },
+        { engels: "deceiving", nederlands: "bedriegen" },
+        { engels: "headquarters", nederlands: "hoofdkwartier" },
+        { engels: "in advance", nederlands: "van tevoren" },
+        { engels: "own", nederlands: "bezitten" },
+        { engels: "genuine", nederlands: "echte" },
+        { engels: "candid", nederlands: "openhartig" },
+        { engels: "inclined", nederlands: "geneigd" },
+        { engels: "cruel", nederlands: "wreed" },
+        { engels: "distinguish", nederlands: "een onderscheid maken" },
+        { engels: "instances", nederlands: "gevallen, voorbeelden" }
+      ],
+      92: [
+        { engels: "instantly", nederlands: "meteen, onmiddellijk" },
+        { engels: "penetrated", nederlands: "drongen door tot achter" },
+        { engels: "caress", nederlands: "strelen" },
+        { engels: "hazardous", nederlands: "gevaarlijke, schadelijke" },
+        { engels: "decade", nederlands: "decennium, tien jaar" },
+        { engels: "reared", nederlands: "opgevoed, grootgebracht" },
+        { engels: "intricate", nederlands: "ingewikkeld" },
+        { engels: "duty-free", nederlands: "belastingvrije" },
+        { engels: "tackle", nederlands: "aanpakken" },
+        { engels: "baskets", nederlands: "mandjes" },
+        { engels: "lapsed", nederlands: "verzonk" },
+        { engels: "dodging", nederlands: "ontwijken" },
+        { engels: "scaffold", nederlands: "schavot" },
+        { engels: "advice", nederlands: "advies" },
+        { engels: "faint", nederlands: "zwak" },
+        { engels: "intercept", nederlands: "onderscheppen" },
+        { engels: "inconsistent", nederlands: "inconsequent" },
+        { engels: "wedding anniversary", nederlands: "trouwdag" },
+        { engels: "giant", nederlands: "reuzen" },
+        { engels: "commonplace", nederlands: "heel gewoon, een alledaags iets" }
+      ],
+      93: [
+        { engels: "invaluable", nederlands: "van onschatbare waarde" },
+        { engels: "tampered", nederlands: "geknoeid" },
+        { engels: "brink", nederlands: "rand" },
+        { engels: "equivalent", nederlands: "gelijkwaardig" },
+        { engels: "dial", nederlands: "bellen" },
+        { engels: "interrupting", nederlands: "in de rede vallen" },
+        { engels: "scale", nederlands: "omvang" },
+        { engels: "crops", nederlands: "oogst" },
+        { engels: "uprooted", nederlands: "ontworteld" },
+        { engels: "that alarmed her", nederlands: "waar ze van schrok" },
+        { engels: "gambling debts", nederlands: "gokschulden" },
+        { engels: "nodded", nederlands: "knikten" },
+        { engels: "awful", nederlands: "vreselijke" },
+        { engels: "crucial", nederlands: "cruciaal, heel belangrijk" },
+        { engels: "conquered", nederlands: "veroverd" },
+        { engels: "overheard", nederlands: "ving op" },
+        { engels: "inscribed", nederlands: "gegrift" },
+        { engels: "omission", nederlands: "weglaten, verzwijgen" },
+        { engels: "chores", nederlands: "klussen" },
+        { engels: "announced", nederlands: "kondigde aan" }
+      ],
+      94: [
+        { engels: "awkward", nederlands: "onhandige" },
+        { engels: "owes", nederlands: "is verschuldigd" },
+        { engels: "utilised", nederlands: "maakten gebruik van" },
+        { engels: "invariably", nederlands: "steevast, telkens weer" },
+        { engels: "valuable", nederlands: "waardevol" },
+        { engels: "bulk carrier", nederlands: "bulkschip" },
+        { engels: "critical", nederlands: "ernstig" },
+        { engels: "vice", nederlands: "slechte gewoonte, ondeugd" },
+        { engels: "interrogated", nederlands: "ondervroeg" },
+        { engels: "reassured", nederlands: "gerustgesteld" },
+        { engels: "notified", nederlands: "op de hoogte gesteld" },
+        { engels: "vigorous exercise", nederlands: "actieve lichaamsbeweging" },
+        { engels: "install", nederlands: "installeren" },
+        { engels: "disadvantages", nederlands: "nadelen" },
+        { engels: "chief", nederlands: "voornaamste" },
+        { engels: "a gasp of astonishment", nederlands: "men stond paf" },
+        { engels: "consequence", nederlands: "gevolg" },
+        { engels: "era", nederlands: "tijdperk" },
+        { engels: "affair", nederlands: "affaire, verhouding" },
+        { engels: "habitats", nederlands: "leefgebieden" }
+      ],
+      95: [
+        { engels: "dispute", nederlands: "geschil" },
+        { engels: "slaughtering", nederlands: "het afslachten van" },
+        { engels: "participants", nederlands: "deelnemers" },
+        { engels: "never loses his temper", nederlands: "wordt nooit boos" },
+        { engels: "maiden", nederlands: "eerste" },
+        { engels: "rim", nederlands: "rand" },
+        { engels: "pierce", nederlands: "doorboren" },
+        { engels: "coincidence", nederlands: "toeval" },
+        { engels: "puns", nederlands: "woordgrappen" },
+        { engels: "setback", nederlands: "tegenslag" },
+        { engels: "offspring", nederlands: "nageslacht, kroost" },
+        { engels: "temporary", nederlands: "tijdelijke" },
+        { engels: "mode", nederlands: "manier, wijze" },
+        { engels: "request", nederlands: "verzoek" },
+        { engels: "panting", nederlands: "hijgen" },
+        { engels: "stooped", nederlands: "bukte zich" },
+        { engels: "core", nederlands: "kern" },
+        { engels: "peeped", nederlands: "gluurde" },
+        { engels: "transformed", nederlands: "wezenlijk veranderd" },
+        { engels: "lets", nederlands: "verhuurt" }
+      ],
+      96: [
+        { engels: "collateral damage", nederlands: "bijkomende schade" },
+        { engels: "revival", nederlands: "opleving" },
+        { engels: "moderates", nederlands: "gematigden" },
+        { engels: "place of storage", nederlands: "opslagplaats" },
+        { engels: "replied", nederlands: "antwoordde" },
+        { engels: "migrate north", nederlands: "trekken naar het noorden" },
+        { engels: "sleaze", nederlands: "slecht, onfatsoenlijk" },
+        { engels: "panties", nederlands: "onderbroek" },
+        { engels: "toughest", nederlands: "moeilijkste" },
+        { engels: "corporal punishment", nederlands: "lijfstraf" },
+        { engels: "separate", nederlands: "aparte" },
+        { engels: "pining for", nederlands: "smachten naar" },
+        { engels: "divorce", nederlands: "scheiding" },
+        { engels: "purchases", nederlands: "aankopen" },
+        { engels: "omens", nederlands: "voortekens" },
+        { engels: "ventured", nederlands: "waagde zich" },
+        { engels: "partial", nederlands: "gedeeltelijke" },
+        { engels: "ultimate", nederlands: "uiteindelijke" },
+        { engels: "level", nederlands: "niveau" },
+        { engels: "scent", nederlands: "geur, spoor" }
+      ]
+    };
 
-{ engels: "stake", nederlands: "aandeel" },
-{ engels: "comparison", nederlands: "vergelijking" },
-{ engels: "miscellaneous", nederlands: "diverse" },
-{ engels: "ancient Egypt", nederlands: "het oude Egypte" },
-{ engels: "utter", nederlands: "volslagen" },
-{ engels: "gadgets", nederlands: "apparaatjes, accessoires" },
-{ engels: "acres", nederlands: "400.000 vierkante meter" },
-{ engels: "quotes", nederlands: "citaten" },
-{ engels: "is alleged to", nederlands: "men beweert dat" },
-{ engels: "funeral", nederlands: "begrafenis" },
-{ engels: "treacherous", nederlands: "verraderlijk" },
-{ engels: "dispense with", nederlands: "het doen zonder" },
-{ engels: "overcome", nederlands: "overwinnen" },
-{ engels: "adopt", nederlands: "aannemen" },
-{ engels: "survived", nederlands: "overleefden" },
-{ engels: "additional", nederlands: "aanvullende, extra" },
-{ engels: "insisted", nederlands: "stond erop" },
-{ engels: "wrecked", nederlands: "vergaan" },
-{ engels: "nothing fancy", nederlands: "niet duur en overdreven" },
-{ engels: "prying eyes", nederlands: "nieuwsgierige blikken" },
+    let score = 0;
+    let woorden = [];
+    let correctLetters = [];
+    let secret = [];
+    let target = "";
+    let hint = "";
+    let wordLength = 0;
+    let turn = 0;
+    let mode = "en-nl";
+    let currentLevel = "77";
+    let xp = 0;
+    let streak = 0;
+    let gameActive = false;
+    let isChecking = false;
+    let timeLeft = 60;
+    let timerInterval = null;
+    let isSpeedMode = false;
+    let highscore = Number(localStorage.getItem("woordjesHighscore")) || 0;
 
-{ engels: "suspected", nederlands: "verdacht" },
-{ engels: "garments", nederlands: "kleren, kledingstukken" },
-{ engels: "presumed", nederlands: "verondersteld" },
-{ engels: "grasped", nederlands: "begrepen" },
-{ engels: "alienated", nederlands: "vervreemd" },
-{ engels: "savaged", nederlands: "aangevallen en gebeten" },
-{ engels: "adjacent rooms", nederlands: "aangrenzende kamers" },
-{ engels: "mocking", nederlands: "bespotten" },
-{ engels: "worthwhile", nederlands: "de moeite waard" },
-{ engels: "on alternate days", nederlands: "om de andere dag" },
-{ engels: "outrage", nederlands: "grote woede en verontwaardiging" },
-{ engels: "prudent", nederlands: "voorzichtig, verstandig" },
-{ engels: "indigenous", nederlands: "inheems" },
-{ engels: "curse", nederlands: "vloek" },
-{ engels: "tribe", nederlands: "stam" },
-{ engels: "at his disposal", nederlands: "tot zijn beschikking" },
-{ engels: "rigid", nederlands: "starre" },
-{ engels: "historical", nederlands: "historische" },
-{ engels: "inscrutable", nederlands: "ondoorgrondelijk" },
-{ engels: "sensitive", nederlands: "gevoelige" },
+    const levelSelect = document.getElementById("levelSelect");
+    const modeSelect = document.getElementById("modeSelect");
+    Object.keys(woordenPerLevel).forEach(level => {
+      const option = document.createElement("option");
+      option.value = level;
+      option.textContent = `Mixed Bag ${level}`;
+      levelSelect.appendChild(option);
+    });
 
-{ engels: "lasting", nederlands: "blijvende, permanente" },
-{ engels: "compassionate", nederlands: "medelevend" },
-{ engels: "endeavouring", nederlands: "probeert" },
-{ engels: "fuss", nederlands: "gedoe, nodeloze drukte" },
-{ engels: "locating", nederlands: "vinden" },
-{ engels: "customs", nederlands: "de douane" },
-{ engels: "intercourse", nederlands: "geslachtsgemeenschap" },
-{ engels: "fluent", nederlands: "vloeiend" },
-{ engels: "groped", nederlands: "betastte" },
-{ engels: "transition", nederlands: "overgang, overgangsperiode" },
-{ engels: "devices", nederlands: "apparaten" },
-{ engels: "heritage", nederlands: "erfgoed" },
-{ engels: "comparable", nederlands: "vergelijkbare" },
-{ engels: "savage", nederlands: "felle, woeste" },
-{ engels: "dyeing", nederlands: "te verven" },
-{ engels: "invisible", nederlands: "onzichtbaar" },
-{ engels: "evolves", nederlands: "zich ontwikkelt" },
-{ engels: "at stake", nederlands: "op het spel" },
-{ engels: "facilitate", nederlands: "faciliteren, vergemakkelijken" },
-{ engels: "pretended", nederlands: "deed alsof" },
-
-{ engels: "invoking", nederlands: "het oproepen van" },
-{ engels: "senseless", nederlands: "zinloze" },
-{ engels: "destiny", nederlands: "lot" },
-{ engels: "flourished", nederlands: "bloeide" },
-{ engels: "adolescence", nederlands: "adolescentie, tienerjaren" },
-{ engels: "logged into", nederlands: "inlogde op" },
-{ engels: "altered", nederlands: "veranderd" },
-{ engels: "indispensable", nederlands: "onontbeerlijke" },
-{ engels: "lax", nederlands: "slappe, niet strenge" },
-{ engels: "ancestors", nederlands: "voorouders" },
-{ engels: "trifle", nederlands: "beetje" },
-{ engels: "fancy", nederlands: "zin hebben om" },
-{ engels: "queer", nederlands: "eigenaardig" },
-{ engels: "exhausted", nederlands: "uitgeput" },
-{ engels: "rigorous", nederlands: "rigoureus, grondig" },
-{ engels: "acquisition", nederlands: "overname" },
-{ engels: "hesitation", nederlands: "aarzeling" },
-{ engels: "endurance", nederlands: "uithoudingsvermogen" },
-{ engels: "uttered", nederlands: "zei, uitte" },
-{ engels: "intelligible", nederlands: "begrijpelijk" },
-
-{ engels: "lounge", nederlands: "lounge, lobby" },
-{ engels: "drag", nederlands: "slepen" },
-{ engels: "ordinary", nederlands: "gewone" },
-{ engels: "constitute", nederlands: "vormen, maken uit" },
-{ engels: "marital", nederlands: "huwelijks" },
-{ engels: "civilians", nederlands: "burgers" },
-{ engels: "grateful", nederlands: "dankbaar" },
-{ engels: "odd", nederlands: "vreemd" },
-{ engels: "convince", nederlands: "overtuigen" },
-{ engels: "joint", nederlands: "gezamenlijke" },
-{ engels: "cunning", nederlands: "sluw" },
-{ engels: "clumsy", nederlands: "onhandige" },
-{ engels: "muted", nederlands: "gedempte" },
-{ engels: "ensure", nederlands: "verzekeren" },
-{ engels: "dissuade", nederlands: "afraden" },
-{ engels: "disagree", nederlands: "ben het oneens" },
-{ engels: "indulgent", nederlands: "toegeeflijke" },
-{ engels: "faults", nederlands: "tekortkomingen" },
-{ engels: "blaze", nederlands: "vuurzee" },
-{ engels: "framework", nederlands: "kader" },
-
-{ engels: "mutate", nederlands: "muteren, veranderen" },
-{ engels: "divided", nederlands: "verdeeld" },
-{ engels: "customs", nederlands: "gewoontes" },
-{ engels: "lunatic", nederlands: "gek" },
-{ engels: "consideration", nederlands: "overweging" },
-{ engels: "opted", nederlands: "koos ervoor" },
-{ engels: "clampdown", nederlands: "beperkende maatregel" },
-{ engels: "jeered", nederlands: "uitgejouwd" },
-{ engels: "drain", nederlands: "legen, laten leeglopen" },
-{ engels: "manufactured", nederlands: "gemaakt" },
-{ engels: "favour", nederlands: "gunst" },
-{ engels: "coarse", nederlands: "grof" },
-{ engels: "foundation", nederlands: "stichting" },
-{ engels: "enveloped", nederlands: "omhulden" },
-{ engels: "converted", nederlands: "verbouwd" },
-{ engels: "occur", nederlands: "vinden plaats, gebeuren" },
-{ engels: "granted", nederlands: "verleend" },
-{ engels: "inexplicable", nederlands: "onverklaarbare" },
-{ engels: "disappeared", nederlands: "verdween" },
-{ engels: "excuses", nederlands: "smoesjes" },
-
-{ engels: "adults", nederlands: "volwassenen" },
-{ engels: "excuse", nederlands: "goedpraten, verontschuldigen" },
-{ engels: "calamity", nederlands: "ramp" },
-{ engels: "clashed", nederlands: "botsten" },
-{ engels: "make amends", nederlands: "het goedmaken" },
-{ engels: "gear", nederlands: "uitrusting" },
-{ engels: "barred", nederlands: "versperde" },
-{ engels: "development", nederlands: "ontwikkeling" },
-{ engels: "outline", nederlands: "overzicht" },
-{ engels: "inexhaustible", nederlands: "onuitputtelijke" },
-{ engels: "familiar", nederlands: "bekend" },
-{ engels: "derived", nederlands: "afgeleid" },
-{ engels: "dignified", nederlands: "plechtige, waardige" },
-{ engels: "charitable", nederlands: "liefdadige" },
-{ engels: "left me in the lurch", nederlands: "liet me in de steek" },
-{ engels: "are composed of", nederlands: "bestaan uit" },
-{ engels: "angle", nederlands: "invalshoek" },
-{ engels: "beyond", nederlands: "voorbij" },
-{ engels: "indulging in", nederlands: "zich te laten verwennen met" },
-{ engels: "affirmed", nederlands: "bevestigden" },
-
-{ engels: "clarify", nederlands: "verduidelijken, verklaren" },
-{ engels: "delivery", nederlands: "bezorging" },
-{ engels: "ample opportunity", nederlands: "ruim de gelegenheid" },
-{ engels: "diary", nederlands: "agenda" },
-{ engels: "bars", nederlands: "tralies" },
-{ engels: "call off", nederlands: "afgelasten" },
-{ engels: "gathered", nederlands: "kwamen bijeen" },
-{ engels: "anguish", nederlands: "angst, zorgen en pijn" },
-{ engels: "inheritance", nederlands: "erfenis" },
-{ engels: "fate", nederlands: "het (nood)lot" },
-{ engels: "malls", nederlands: "winkelcentra" },
-{ engels: "outrageous", nederlands: "ongehoorde, schandelijke" },
-{ engels: "bewildered", nederlands: "verbijsterde" },
-{ engels: "chased", nederlands: "achternagezeten" },
-{ engels: "diminish", nederlands: "af te nemen, minder te worden" },
-{ engels: "conceals", nederlands: "verbergt" },
-{ engels: "adultery", nederlands: "overspel" },
-{ engels: "lure", nederlands: "lokken" },
-{ engels: "infants", nederlands: "baby’s en kleuters" },
-{ engels: "aid", nederlands: "hulp" },
-
-{ engels: "durable", nederlands: "duurzame" },
-{ engels: "barbed wire", nederlands: "prikkeldraad" },
-{ engels: "ominous", nederlands: "dreigende" },
-{ engels: "intruder", nederlands: "indringer" },
-{ engels: "lap", nederlands: "schoot" },
-{ engels: "habit", nederlands: "gewoonte" },
-{ engels: "common sense", nederlands: "gezond verstand" },
-{ engels: "peninsula", nederlands: "schiereiland" },
-{ engels: "failure", nederlands: "mislukking" },
-{ engels: "intended", nederlands: "van plan was" },
-{ engels: "deceiving", nederlands: "bedriegen" },
-{ engels: "headquarters", nederlands: "hoofdkwartier" },
-{ engels: "in advance", nederlands: "van tevoren" },
-{ engels: "own", nederlands: "bezitten" },
-{ engels: "genuine", nederlands: "echte" },
-{ engels: "candid", nederlands: "openhartig" },
-{ engels: "inclined", nederlands: "geneigd" },
-{ engels: "cruel", nederlands: "wreed" },
-{ engels: "distinguish", nederlands: "een onderscheid maken" },
-{ engels: "instances", nederlands: "gevallen, voorbeelden" },
-
-{ engels: "instantly", nederlands: "meteen, onmiddellijk" },
-{ engels: "penetrated", nederlands: "drongen door tot achter" },
-{ engels: "caress", nederlands: "strelen" },
-{ engels: "hazardous", nederlands: "gevaarlijke, schadelijke" },
-{ engels: "decade", nederlands: "decennium, tien jaar" },
-{ engels: "reared", nederlands: "opgevoed, grootgebracht" },
-{ engels: "intricate", nederlands: "ingewikkeld" },
-{ engels: "duty-free", nederlands: "belastingvrije" },
-{ engels: "tackle", nederlands: "aanpakken" },
-{ engels: "baskets", nederlands: "mandjes" },
-{ engels: "lapsed", nederlands: "verzonk" },
-{ engels: "dodging", nederlands: "ontwijken" },
-{ engels: "scaffold", nederlands: "schavot" },
-{ engels: "advice", nederlands: "advies" },
-{ engels: "faint", nederlands: "zwak" },
-{ engels: "intercept", nederlands: "onderscheppen" },
-{ engels: "inconsistent", nederlands: "inconsequent" },
-{ engels: "wedding anniversary", nederlands: "trouwdag" },
-{ engels: "giant", nederlands: "reuzen" },
-{ engels: "commonplace", nederlands: "heel gewoon, een alledaags iets" },
-
-{ engels: "invaluable", nederlands: "van onschatbare waarde" },
-{ engels: "tampered", nederlands: "geknoeid" },
-{ engels: "brink", nederlands: "rand" },
-{ engels: "equivalent", nederlands: "gelijkwaardig" },
-{ engels: "dial", nederlands: "bellen" },
-{ engels: "interrupting", nederlands: "in de rede vallen" },
-{ engels: "scale", nederlands: "omvang" },
-{ engels: "crops", nederlands: "oogst" },
-{ engels: "uprooted", nederlands: "ontworteld" },
-{ engels: "that alarmed her", nederlands: "waar ze van schrok" },
-{ engels: "gambling debts", nederlands: "gokschulden" },
-{ engels: "nodded", nederlands: "knikten" },
-{ engels: "awful", nederlands: "vreselijke" },
-{ engels: "crucial", nederlands: "cruciaal, heel belangrijk" },
-{ engels: "conquered", nederlands: "veroverd" },
-{ engels: "overheard", nederlands: "ving op" },
-{ engels: "inscribed", nederlands: "gegrift" },
-{ engels: "omission", nederlands: "weglaten, verzwijgen" },
-{ engels: "chores", nederlands: "klussen" },
-{ engels: "announced", nederlands: "kondigde aan" },
-
-{ engels: "awkward", nederlands: "onhandige" },
-{ engels: "owes", nederlands: "is verschuldigd" },
-{ engels: "utilised", nederlands: "maakten gebruik van" },
-{ engels: "invariably", nederlands: "steevast, telkens weer" },
-{ engels: "valuable", nederlands: "waardevol" },
-{ engels: "bulk carrier", nederlands: "bulkschip" },
-{ engels: "critical", nederlands: "ernstig" },
-{ engels: "vice", nederlands: "slechte gewoonte, ondeugd" },
-{ engels: "interrogated", nederlands: "ondervroeg" },
-{ engels: "reassured", nederlands: "gerustgesteld" },
-{ engels: "notified", nederlands: "op de hoogte gesteld" },
-{ engels: "vigorous exercise", nederlands: "actieve lichaamsbeweging" },
-{ engels: "install", nederlands: "installeren" },
-{ engels: "disadvantages", nederlands: "nadelen" },
-{ engels: "chief", nederlands: "voornaamste" },
-{ engels: "a gasp of astonishment", nederlands: "men stond paf" },
-{ engels: "consequence", nederlands: "gevolg" },
-{ engels: "era", nederlands: "tijdperk" },
-{ engels: "affair", nederlands: "affaire, verhouding" },
-{ engels: "habitats", nederlands: "leefgebieden" },
-
-{ engels: "dispute", nederlands: "geschil" },
-{ engels: "slaughtering", nederlands: "het afslachten van" },
-{ engels: "participants", nederlands: "deelnemers" },
-{ engels: "never loses his temper", nederlands: "wordt nooit boos" },
-{ engels: "maiden", nederlands: "eerste" },
-{ engels: "rim", nederlands: "rand" },
-{ engels: "pierce", nederlands: "doorboren" },
-{ engels: "coincidence", nederlands: "toeval" },
-{ engels: "puns", nederlands: "woordgrappen" },
-{ engels: "setback", nederlands: "tegenslag" },
-{ engels: "offspring", nederlands: "nageslacht, kroost" },
-{ engels: "temporary", nederlands: "tijdelijke" },
-{ engels: "mode", nederlands: "manier, wijze" },
-{ engels: "request", nederlands: "verzoek" },
-{ engels: "panting", nederlands: "hijgen" },
-{ engels: "stooped", nederlands: "bukte zich" },
-{ engels: "core", nederlands: "kern" },
-{ engels: "peeped", nederlands: "gluurde" },
-{ engels: "transformed", nederlands: "wezenlijk veranderd" },
-{ engels: "lets", nederlands: "verhuurt" },
-
-{ engels: "collateral damage", nederlands: "bijkomende schade" },
-{ engels: "revival", nederlands: "opleving" },
-{ engels: "moderates", nederlands: "gematigden" },
-{ engels: "place of storage", nederlands: "opslagplaats" },
-{ engels: "replied", nederlands: "antwoordde" },
-{ engels: "migrate north", nederlands: "trekken naar het noorden" },
-{ engels: "sleaze", nederlands: "slecht, onfatsoenlijk" },
-{ engels: "panties", nederlands: "onderbroek" },
-{ engels: "toughest", nederlands: "moeilijkste" },
-{ engels: "corporal punishment", nederlands: "lijfstraf" },
-{ engels: "separate", nederlands: "aparte" },
-{ engels: "pining for", nederlands: "smachten naar" },
-{ engels: "divorce", nederlands: "scheiding" },
-{ engels: "purchases", nederlands: "aankopen" },
-{ engels: "omens", nederlands: "voortekens" },
-{ engels: "ventured", nederlands: "waagde zich" },
-{ engels: "partial", nederlands: "gedeeltelijke" },
-{ engels: "ultimate", nederlands: "uiteindelijke" },
-{ engels: "level", nederlands: "niveau" },
-{ engels: "scent", nederlands: "geur, spoor" }
-];
-
-  let correctLetters = [];
-  let secret = "";
-  let hint = "";
-  let wordLength = 0;
-  let turn = 0;
-  let mode = "en-nl";
-
-  function startWithMode(selectedMode) {
-    mode = selectedMode;
-    document.getElementById("startscherm").style.display = "none";
-    document.getElementById("spel").style.display = "block";
-    startGame();
-  }
-
-  function startGame() {
-    const woord = woorden[Math.floor(Math.random() * woorden.length)];
-    if (mode === "en-nl") {
-      secret = woord.nederlands.toLowerCase().split(',').map(s => s.trim());
-      hint = woord.engels;
-    } else {
-      secret = woord.engels.toLowerCase().split(',').map(s => s.trim());
-      hint = woord.nederlands;
+    function clean(text) {
+      return text.toLowerCase().trim().replaceAll(" ", "");
     }
 
-    let target = secret[0];
-    wordLength = target.length;
-    turn = 0;
-    correctLetters = Array(wordLength).fill(null);
+    function startWithMode(selectedMode) {
+      mode = selectedMode;
+      currentLevel = levelSelect.value;
+      woorden = woordenPerLevel[currentLevel];
 
-    document.getElementById("grid-container").innerHTML = "";
-    document.getElementById("message").textContent = "";
-    document.getElementById("hint").textContent = `Hint: ${hint} (${wordLength} letters)`;
-    document.getElementById("remaining").textContent = `Nog ${wordLength} letters invoeren…`;
+      score = 0;
+      xp = 0;
+      streak = 0;
+      gameActive = true;
+      isChecking = false;
+      isSpeedMode = modeSelect.value === "speed";
 
-    for (let i = 0; i < 6; i++) {
-      const row = document.createElement("div");
-      row.classList.add("grid");
-      row.style.gridTemplateColumns = `repeat(${wordLength}, 50px)`;
+      document.getElementById("score").textContent = "Score: 0";
+      document.getElementById("xp").textContent = "XP: 0";
+      document.getElementById("streak").textContent = "🔥 Streak: 0";
+      document.getElementById("highscore").textContent = isSpeedMode ? `🏆 Record: ${highscore}` : "🏆 Vrij oefenen";
+      document.getElementById("timer").textContent = isSpeedMode ? "⏱ 60s" : "⏱ Geen timer";
+      document.getElementById("levelLabel").textContent = `Mixed Bag ${currentLevel}`;
+      document.getElementById("startscherm").style.display = "none";
+      document.getElementById("spel").style.display = "block";
 
-      for (let j = 0; j < wordLength; j++) {
-        const tile = document.createElement("div");
-        tile.classList.add("tile");
-        tile.id = `tile-${i}-${j}`;
+      startGame();
+      if (isSpeedMode) {
+        startTimer();
+      } else if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+    }
 
-        if (target[j] === " ") {
+    function terugNaarMenu() {
+      gameActive = false;
+      isChecking = false;
+      if (timerInterval) clearInterval(timerInterval);
+
+      document.getElementById("spel").style.display = "none";
+      document.getElementById("startscherm").style.display = "grid";
+    }
+
+    function startGame() {
+      if (!gameActive) return;
+
+      const woord = woorden[Math.floor(Math.random() * woorden.length)];
+
+      if (mode === "en-nl") {
+        secret = woord.nederlands.toLowerCase().split(",").map(s => s.trim());
+        hint = woord.engels;
+      } else {
+        secret = woord.engels.toLowerCase().split(",").map(s => s.trim());
+        hint = woord.nederlands;
+      }
+
+      target = secret[0];
+      wordLength = target.length;
+      turn = 0;
+      correctLetters = Array(wordLength).fill(null);
+
+      document.getElementById("grid-container").innerHTML = "";
+      document.getElementById("message").textContent = "";
+      document.getElementById("message").className = "message";
+      document.getElementById("hint").textContent = `Hint: ${hint}`;
+      document.getElementById("helper").textContent = `${wordLength} tekens, spaties tellen mee maar mogen ook worden overgeslagen bij het invullen.`;
+      document.getElementById("remaining").textContent = `Nog ${wordLength} tekens invoeren…`;
+
+      for (let i = 0; i < 6; i++) {
+        const row = document.createElement("div");
+        row.classList.add("grid");
+        row.style.gridTemplateColumns = `repeat(${wordLength}, 46px)`;
+
+        for (let j = 0; j < wordLength; j++) {
+          const tile = document.createElement("div");
+          tile.classList.add("tile");
+          tile.id = `tile-${i}-${j}`;
+
+          if (target[j] === " ") {
+            tile.textContent = " ";
+            tile.classList.add("space");
+            correctLetters[j] = " ";
+          }
+
+          row.appendChild(tile);
+        }
+        document.getElementById("grid-container").appendChild(row);
+      }
+
+      const input = document.getElementById("guess");
+      input.setAttribute("maxlength", wordLength);
+      input.value = "";
+      input.disabled = false;
+      isChecking = false;
+      input.focus();
+    }
+
+    function submitGuess() {
+      if (!gameActive) return;
+
+      const input = document.getElementById("guess");
+      const guess = input.value.toLowerCase();
+      const message = document.getElementById("message");
+
+      if (guess.length !== wordLength) {
+        input.disabled = false;
+        isChecking = false;
+        message.textContent = `Gebruik precies ${wordLength} tekens. Spaties tellen mee.`;
+        message.className = "message danger";
+        return;
+      }
+
+      if (turn >= 6) return;
+
+      for (let i = 0; i < wordLength; i++) {
+        const tile = document.getElementById(`tile-${turn}-${i}`);
+
+        if (target[i] === " ") {
           tile.textContent = " ";
-          tile.style.backgroundColor = "#eee";
-          tile.style.border = "2px dashed #ccc";
-          correctLetters[j] = " ";
+          tile.classList.add("space");
+          continue;
         }
 
-        row.appendChild(tile);
+        tile.textContent = guess[i].toUpperCase();
+
+        if (guess[i] === target[i]) {
+          tile.classList.add("green");
+          correctLetters[i] = guess[i];
+        } else if (target.includes(guess[i])) {
+          tile.classList.add("orange");
+        } else {
+          tile.classList.add("grey");
+        }
       }
 
-      document.getElementById("grid-container").appendChild(row);
+      if (secret.some(answer => clean(answer) === clean(guess))) {
+        score++;
+        xp += 10;
+        streak++;
+
+        let bonusText = "";
+        if (streak === 3) bonusText = " 🔥 3 op rij!";
+        if (streak === 5) bonusText = " 🚀 5 op rij!";
+        if (streak === 10) bonusText = " 👑 10 op rij!";
+
+        message.textContent = `✅ Goed geraden! +10 XP${bonusText}`;
+        message.className = "message success";
+
+        document.getElementById("score").textContent = `Score: ${score}`;
+        document.getElementById("xp").textContent = `XP: ${xp}`;
+        document.getElementById("streak").textContent = `🔥 Streak: ${streak}`;
+
+        setTimeout(() => { if (gameActive) startGame(); }, 1600);
+        return;
+      }
+
+      turn++;
+
+      if (turn === 6) {
+        streak = 0;
+        document.getElementById("streak").textContent = "🔥 Streak: 0";
+
+        message.textContent = `❌ Helaas! Antwoord: ${secret.map(w => w.toUpperCase()).join(" of ")}`;
+        message.className = "message danger";
+        setTimeout(() => { if (gameActive) startGame(); }, 3000);
+        return;
+      }
+
+      for (let i = 0; i < wordLength; i++) {
+        if (correctLetters[i]) {
+          const tile = document.getElementById(`tile-${turn}-${i}`);
+          tile.textContent = correctLetters[i].toUpperCase();
+          tile.classList.add(correctLetters[i] === " " ? "space" : "green");
+        }
+      }
+
+      input.value = "";
+      input.disabled = false;
+      isChecking = false;
+      input.focus();
+
+      document.getElementById("remaining").textContent =
+        `Nog ${wordLength} tekens invoeren…`;
     }
 
     const input = document.getElementById("guess");
-    input.setAttribute("maxlength", wordLength);
-    input.value = "";
-    input.focus();
-  }
+    input.addEventListener("keydown", event => {
+      if (event.key === "Enter") submitGuess();
+    });
 
-  function submitGuess() {
-    const input = document.getElementById("guess");
-    const guess = input.value.toLowerCase();
+    input.addEventListener("input", () => {
+      if (!gameActive || isChecking) return;
 
-    if (guess.length !== wordLength) {
-      document.getElementById("message").textContent = `Gebruik precies ${wordLength} letters.`;
-      return;
+      const entered = input.value.length;
+      const rest = wordLength - entered;
+
+      document.getElementById("remaining").textContent =
+        rest === 0
+          ? "⏳ Controleren..."
+          : `Nog ${rest} teken${rest === 1 ? "" : "s"} invoeren…`;
+
+      if (entered === wordLength && turn < 6) {
+        isChecking = true;
+        input.disabled = true;
+
+        setTimeout(() => {
+          submitGuess();
+        }, 200);
+      }
+    });
+
+    function startTimer() {
+      timeLeft = 60;
+      document.getElementById("timer").textContent = `⏱ ${timeLeft}s`;
+
+      if (timerInterval) clearInterval(timerInterval);
+
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = `⏱ ${timeLeft}s`;
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          endGame();
+        }
+      }, 1000);
     }
-    if (turn >= 6) return;
 
-    let target = secret[0];
+    function endGame() {
+      gameActive = false;
+      isChecking = false;
 
-    for (let i = 0; i < wordLength; i++) {
-      const tile = document.getElementById(`tile-${turn}-${i}`);
-      if (target[i] === " ") {
-        tile.textContent = " ";
-        tile.style.backgroundColor = "#eee";
-        tile.style.border = "2px dashed #ccc";
-        continue;
+      const input = document.getElementById("guess");
+      input.disabled = true;
+
+      let endMessage = `⏰ Tijd voorbij! Score: ${score}`;
+
+      if (score > highscore) {
+        highscore = score;
+        localStorage.setItem("woordjesHighscore", highscore);
+        document.getElementById("highscore").textContent = `🏆 Record: ${highscore}`;
+        endMessage = `🏆 NIEUW RECORD! Score: ${score}`;
       }
 
-      tile.textContent = guess[i].toUpperCase();
-
-      if (guess[i] === target[i]) {
-        tile.classList.add("green");
-        correctLetters[i] = guess[i];
-      } else if (target.includes(guess[i])) {
-        tile.classList.add("orange");
-      } else {
-        tile.classList.add("grey");
-      }
+      document.getElementById("remaining").textContent = "Speel opnieuw via het menu.";
+      document.getElementById("message").textContent = endMessage;
+      document.getElementById("message").className = "message success";
     }
 
-    if (secret.some(w => w.replaceAll(" ", "") === guess.replaceAll(" ", ""))) {
-      document.getElementById("message").textContent = "✅ Goed geraden!";
-      score++;
-      document.getElementById("score").textContent = `Score: ${score}`;
-      setTimeout(startGame, 2000);
-      return;
-    }
-
-    turn++;
-    if (turn === 6) {
-      document.getElementById("message").textContent = `❌ Helaas! Mogelijke antwoorden: ${secret.map(w => w.toUpperCase()).join(' of ')}`;
-      setTimeout(startGame, 3000);
-      return;
-    }
-
-    for (let i = 0; i < wordLength; i++) {
-      if (correctLetters[i]) {
-        const tile = document.getElementById(`tile-${turn}-${i}`);
-        tile.textContent = correctLetters[i].toUpperCase();
-        tile.classList.add("green");
-      }
-    }
-
-    input.value = "";
-    input.focus();
-  }
-
-  const input = document.getElementById("guess");
-  input.addEventListener("keydown", function(event) {
-    if (event.key === "Enter") {
-      submitGuess();
-    }
-  });
-
-  input.addEventListener("input", () => {
-    const entered = input.value.length;
-    const rest = wordLength - entered;
-    const over = entered > wordLength;
-
-    const msg = over
-      ? `❌ Te veel letters (max. ${wordLength})`
-      : rest === 0
-        ? `✅ Klaar om te verzenden (druk op Enter)`
-        : `Nog ${rest} letter${rest === 1 ? '' : 's'} invoeren…`;
-
-    document.getElementById("remaining").textContent = msg;
-
-    if (over) {
-      input.style.border = "2px solid red";
-      input.style.backgroundColor = "#ffe5e5";
-    } else {
-      input.style.border = "2px solid #ccc";
-      input.style.backgroundColor = "white";
-    }
-  });
-</script>
-
-<footer style="margin-top: 40px; font-size: 14px; color: grey; text-align: center;">
-  Spel ontwikkeld door Mevrouw Gransjean<br>© april 2026
-</footer>
-
+  </script>
 </body>
 </html>
